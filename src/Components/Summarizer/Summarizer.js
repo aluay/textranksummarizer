@@ -5,33 +5,53 @@ export default class OriginalText extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			rawText: "",
-			summarizedText: "",
+			rawText: "", //  Original raw text input
+			summarizedText: "", //  Summarized text output
 		};
 		//	Bind functions to the constructor
 		this.handleChange = this.handleChange.bind(this);
 		this.handleSubmit = this.handleSubmit.bind(this);
 		this.summarizeText = this.summarizeText.bind(this);
 		this.intersect = this.intersect.bind(this);
+		this.clearForm = this.clearForm.bind(this);
+		this.handleLength = this.handleSubmit.bind(this);
 	}
 
+	//	Handle changes before the Summarize button is clicked
 	handleChange(event) {
-		this.setState({ rawText: event.target.value });
+		this.setState({ rawText: event.target.rawText.value });
+		this.setState({ summaryLength: event.target.summaryLength });
 	}
 
+	//	Handle submission after the Summarize button is clicked
 	handleSubmit(event) {
-		const summary = this.summarizeText(this.state.rawText);
+		const summary = this.summarizeText(
+			event.target.rawText.value,
+			event.target.summaryLength.value
+		);
+		this.setState({ rawText: event.target.rawText.value });
 		this.setState({ summarizedText: summary });
 		event.preventDefault();
 	}
 
 	//  This implementation uses the TextRank algorithm, which calculates sentence similarity scores
 	//  based on the overlap of words between sentences, and then ranks the sentences based on those
-	//  scores to extract the most important sentences. The returned summary will be the first 3 sentences
+	//  scores to extract the most important sentences. The returned summary will be the sentences
 	//  with the highest scores.
 
-	summarizeText(text) {
-		const sentences = text.split(/[.?!]+/); // split text into sentences
+	summarizeText(rawText, summaryLength) {
+		//	Check the selected length and assign it a number of sentences
+		let sumLength = 0;
+		if (summaryLength === "short") {
+			sumLength = 3;
+		} else if (summaryLength === "medium") {
+			sumLength = 5;
+		} else if (summaryLength === "long") {
+			sumLength = 7;
+		}
+
+		// split text into sentences
+		const sentences = rawText.split(/[.?!]+/);
 
 		// create a matrix to store sentence similarity scores
 		const similarityMatrix = [];
@@ -78,10 +98,10 @@ export default class OriginalText extends React.Component {
 		}
 		sortedSentences.sort((a, b) => b.score - a.score);
 
-		// return the first 3 sentences with the highest scores
+		// return the sentences with the highest scores
 		return (
 			sortedSentences
-				.slice(0, 3)
+				.slice(0, sumLength)
 				.map((s) => s.sentence)
 				.join(". ") + "."
 		);
@@ -92,29 +112,50 @@ export default class OriginalText extends React.Component {
 		return a.filter((value) => b.includes(value));
 	}
 
+	//  Clear the form on Clear button click
+	clearForm(event) {
+		this.setState({ summarizedText: "", rawText: "" });
+	}
+
 	render() {
 		return (
 			<div className="content">
 				<div className="input">
-					<h2>Enter text below to summarize</h2>
 					<form onSubmit={this.handleSubmit}>
 						<textarea
-							placeholder="Enter text to summarize"
-							value={this.state.rawText}
-							onChange={this.handleChange}
 							rows={10}
+							required
+							name="rawText"
+							placeholder="Original text"
 						/>
-						<button type="submit">Summarize</button>
+						<div className="controls">
+							<div className="length-menu">
+								<p>Summary length:</p>
+								<select
+									name="summaryLength"
+									onChange={this.handleChange}
+									defaultValue={this.state.summaryLength}>
+									<option value="short">Short</option>
+									<option value="medium">Medium</option>
+									<option value="long">Long</option>
+								</select>
+							</div>
+							<button type="submit" className="summarize-btn">
+								Summarize
+							</button>
+						</div>
 					</form>
 				</div>
 				<div className="output">
-					<h2>Summarized text</h2>
 					<textarea
-						placeholder="Summary"
-						value={this.state.summarizedText}
-						onChange={(event) => this.state.summarizedText}
 						rows={10}
+						onChange={(event) => this.state.summarizedText}
+						value={this.state.summarizedText}
+						placeholder="Summarized text"
 					/>
+					<button onClick={this.clearForm} className="clear-btn">
+						Clear
+					</button>
 				</div>
 			</div>
 		);

@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@200,300&display=swap");
-
 html,
 body,
 div,
@@ -127,14 +125,7 @@ table {
 
 body,
 html {
-	font-family: "Inter", sans-serif;
 	-moz-osx-font-smoothing: grayscale;
 	-webkit-font-smoothing: antialiased;
-}
-
-.App {
-	display: flex;
-	justify-content: center;
-	justify-items: center;
-	flex-direction: column;
+	background-color: #fff;
 }
